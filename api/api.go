@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"testando/api/models"
@@ -19,7 +20,7 @@ func Run() {
 
 func listen(p int) {
 	//port := fmt.Sprintf(":%d", p)
-	//fmt.Printf("\n\nListening port %s...\n", port)
+	fmt.Printf(" executando na porta: 3000")
 	r := routes.NewRouter()
 	log.Fatal(http.ListenAndServe("127.0.0.1:3000", r))
 }

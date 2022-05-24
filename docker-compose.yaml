@@ -1,0 +1,29 @@
+version: "2"
+services:
+  mysql:
+    container_name: "mysql-docker"
+    image: mysql:latest
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    ports:
+      - 3307:3306
+    networks:
+      - dockercompose
+    environment:
+      DB_DATABASE: go_teste
+      MYSQL_ROOT_PASSWORD: root
+  backend:
+    container_name: "backend"
+    build: .
+    restart: always
+    ports:
+      - 3001:3000
+    networks:
+      - dockercompose
+    depends_on:
+      - mysql
+volumes:
+  database:
+    driver: "local"
+networks:
+  dockercompose:

@@ -8,7 +8,9 @@ import (
 )
 
 func Connect() *gorm.DB {
-	URL := "root:root@tcp(127.0.0.1:3306)/go_teste"
+
+	URL := "root:root@tcp(mysql-docker:3306)/go_teste"
+
 	db, err := gorm.Open("mysql", URL)
 	if err != nil {
 		log.Fatal(err)

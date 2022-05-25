@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 	"testando/api/models"
-	"testando/api/utils"
 
 	"github.com/golang-jwt/jwt"
 )
@@ -20,15 +19,19 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Println(r.RequestURI)
 		token := r.Header.Get("Authorization")
+		tokenStr := token
+
 		_, err := models.GetUserByToken(token)
+
 		if err != nil {
-			utils.Response(w, err, http.StatusBadRequest)
+			w.WriteHeader(http.StatusBadRequest)
 		}
-		tkn, err := jwt.Parse(token,
+
+		claims := &Claims{}
+		tkn, err := jwt.ParseWithClaims(tokenStr, claims,
 			func(t *jwt.Token) (interface{}, error) {
 				return JwtKey, nil
 			})
-
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
 				w.WriteHeader(http.StatusUnauthorized)

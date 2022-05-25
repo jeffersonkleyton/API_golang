@@ -14,12 +14,16 @@ services:
       MYSQL_ROOT_PASSWORD: root
   backend:
     container_name: "backend"
-    build: .
+    image: goteste
     restart: always
     ports:
       - 3001:3000
     networks:
       - dockercompose
+    #env_file:
+    #  - .env
+    environment:
+      - HOST_DB=mysql-docker
     depends_on:
       - mysql
 volumes:

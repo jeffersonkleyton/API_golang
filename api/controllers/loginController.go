@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"testando/api/models"
 	"testando/api/utils"
+	"time"
 
 	"github.com/golang-jwt/jwt"
 	"golang.org/x/crypto/bcrypt"
@@ -22,10 +23,10 @@ type Credentials struct {
 	Password string `json:"password"`
 }
 
-/* type Claims struct {
-	Username string `json:"username"`
+type Claims struct {
+	Email string `json:"email"`
 	jwt.StandardClaims
-} */
+}
 
 func Login(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -35,47 +36,30 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	user, err := models.GetUserByEmail(credentials.Email)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
 	err = bcrypt.CompareHashAndPassword([]byte(user.Password), ([]byte(credentials.Password)))
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-
-	//expirationTime := time.Now().Add(time.Minute * 5)
-
-	/* 	claims := &Claims{
-		Username: credentials.Username,
+	expirationTime := time.Now().Add(time.Minute * 5)
+	claims := &Claims{
+		Email: credentials.Email,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expirationTime.Unix(),
 		},
-	}  */
-
-	//token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	token := jwt.New(jwt.SigningMethodHS256)
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(JwtKey)
-
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	models.UpdateTokenByEmail(tokenString, user)
-
 	utils.Response(w, tokenString, http.StatusOK)
-
-	/* http.SetCookie(w,
-	&http.Cookie{
-		Name:  "token",
-		Value: tokenString,
-		//Expires: expirationTime,
-	}) */
 }
 
 func Refresh(w http.ResponseWriter, r *http.Request) {
@@ -91,13 +75,9 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 
 	tokenStr := cookie.Value
 
-	//claims := &Claims{}
+	claims := &Claims{}
 
-	/* tkn, err := jwt.ParseWithClaims(tokenStr, claims,
-	func(t *jwt.Token) (interface{}, error) {
-		return JwtKey, nil
-	}) */
-	tkn, err := jwt.Parse(tokenStr,
+	tkn, err := jwt.ParseWithClaims(tokenStr, claims,
 		func(t *jwt.Token) (interface{}, error) {
 			return JwtKey, nil
 		})
@@ -120,13 +100,11 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 	// 	return
 	// }
 
-	//expirationTime := time.Now().Add(time.Minute * 5)
+	expirationTime := time.Now().Add(time.Minute * 5)
 
-	//claims.ExpiresAt = expirationTime.Unix()
+	claims.ExpiresAt = expirationTime.Unix()
 
-	/* token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims) */
-	/* 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	 */token := jwt.New(jwt.SigningMethodHS256)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(JwtKey)
 
 	if err != nil {
@@ -136,8 +114,8 @@ func Refresh(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w,
 		&http.Cookie{
-			Name:  "refresh_token",
-			Value: tokenString,
-			///*  */Expires: expirationTime,
+			Name:    "refresh_token",
+			Value:   tokenString,
+			Expires: expirationTime,
 		})
 }

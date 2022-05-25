@@ -13,14 +13,13 @@ func Run() {
 	defer db.Close()
 
 	if !db.HasTable(&models.User{}) {
-		db.Debug().CreateTable(&models.User{})
+		db.Debug().Create(&models.User{})
 	}
 	listen(3000)
 }
 
 func listen(p int) {
-	//port := fmt.Sprintf(":%d", p)
 	fmt.Printf(" executando na porta: 3000")
 	r := routes.NewRouter()
-	log.Fatal(http.ListenAndServe("127.0.0.1:3000", r))
+	log.Fatal(http.ListenAndServe(":3000", r))
 }
